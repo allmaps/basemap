@@ -11,6 +11,7 @@
     />
     <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.0.0/dist/maplibre-gl.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@allmaps/maplibre/dist/bundled/allmaps-maplibre-4.0.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pmtiles@3.0.5/dist/pmtiles.js"></script>
     <link rel="stylesheet" href="style.css" type="text/css" />
     <script src="controls.js"></script>
   </head>
@@ -18,6 +19,9 @@
     <div id="map"></div>
     <div id="controls"></div>
     <script type="module">
+      let protocol = new pmtiles.Protocol();
+      maplibregl.addProtocol("pmtiles",protocol.tile);
+
       const map = new maplibregl.Map({
         container: 'map',
         style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
@@ -31,6 +35,22 @@
         // - https://github.com/mapbox/mapbox-gl-js/issues/8936
         preserveDrawingBuffer: true
       })
+
+      map.on("load", () => {
+        map.addSource("terrain", {
+          type: 'raster-dem',
+          url: "pmtiles://https://r2-public.protomaps.com/protomaps-sample-datasets/terrarium-z12.pmtiles",
+          encoding: "terrarium",
+          attribution: "<a href='https://github.com/tilezen/joerd/tree/master'>Joerd</a>"
+        });
+
+        map.addLayer({
+          id: "hillshade",
+          type: "hillshade",
+          source: "terrain"
+        },"water")
+      })
+
 
       let mapLoaded = false
       let nav = new maplibregl.NavigationControl()
